@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # PlotDist
-
 import sys
 from numpy import histogram,percentile
+import argparse
+from math import floor
 
-# TODO make these passable options
-BINS=60
-HEIGHT=10
 CHARS={'full_top':'┃', 'half_top':'╻', 'fill':'┃'}
 
-def draw_hist(normed_hist_list,shape):
+def draw_hist(normed_hist_list,shape,args):
     """ takes a list of histogram bin counts and shape(min,max) of input """
     
     # TODO make the offset configurable
@@ -20,22 +18,23 @@ def draw_hist(normed_hist_list,shape):
 
     print ""
     # Build plot from top level
-    for depth in range(HEIGHT-1,-1,-1):
+    for depth in range(args.height-1,-1,-1):
 
         # Draw Y axis
-        if depth == HEIGHT/2:
+        if depth == args.height/2:
             sys.stdout.write(y_label+'│')
         else:
             sys.stdout.write(y_offset+'│')
 
         # Draw bars
         for item in normed_hist_list:
-            if floor(item) >= depth:
-                if floor(item) == depth and item % 1 < 0.75 and item%1 >0.25:
+            floored_item = floor(item)
+            if floored_item >= depth:
+                if floored_item == depth and item % 1 < 0.75 and item%1 >0.25:
                     sys.stdout.write( CHARS['half_top'] )
-                elif floor(item) == depth and item % 1 > 0.75 :
+                elif floored_item == depth and item % 1 > 0.75 :
                     sys.stdout.write( CHARS['full_top'] )
-                elif floor(item) > depth:
+                elif floored_item > depth:
                     sys.stdout.write( CHARS['fill'] )
                 else:
                     sys.stdout.write(' ')
@@ -45,15 +44,18 @@ def draw_hist(normed_hist_list,shape):
         print ""
 
     # Draw X axis 
-    print y_offset + '└'+ "─"*(BINS+2)
-    print y_offset + str(shape[0]) + ' '*(BINS-3) + str(shape[1])
+    print y_offset + '└'+ "─"*(args.bins+2)
+    print y_offset + str(shape[0]) + ' '*(args.bins-3) + str(shape[1])
 
-def floor(val):
-    """ only because I don't want to use math.floor """
-    int_part = int(str(val).split('.')[0])
-    return int_part
+def parse_args():
+    parser = argparse.ArgumentParser(description='plot a distribution from stdin', add_help=False)
+    parser.add_argument('-b', '--bins', type=int, help='the number of bins (default:60)', default=60)
+    parser.add_argument('-h', '--height', type=int, help='the height of the plot', default=10)
+    return parser.parse_args(sys.argv[1:])
 
 def main():
+
+    args = parse_args()
     input_data = sys.stdin.read().strip('\n')
     input_list = input_data.split('\n')
     
@@ -64,13 +66,13 @@ def main():
         raise SystemError("Failed to convert input to float")
     
 
-    hist_list,bin_edges = histogram(input_list,bins=BINS)
+    hist_list,bin_edges = histogram(input_list,bins=args.bins)
     max_count = max(hist_list)
     shape = ( min(input_list), max(input_list) )
-    normed_hist_list = [ float(x)*HEIGHT/max_count for x in hist_list ]
+    normed_hist_list = [ float(x)*args.height/max_count for x in hist_list ]
     
     # Draw the histogram
-    draw_hist(normed_hist_list,shape)
+    draw_hist(normed_hist_list,shape,args)
  
     # Calculate stats on data
     print '\ncount      :',len(input_list)
