@@ -49,8 +49,9 @@ def draw_hist(normed_hist_list,shape,args):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='plot a distribution from stdin', add_help=False)
-    parser.add_argument('-b', '--bins', type=int, help='the number of bins (default:60)', default=60)
-    parser.add_argument('-h', '--height', type=int, help='the height of the plot', default=10)
+    parser.add_argument('-b', '--bins', type=int, help='the number of bins (default=60)', default=60)
+    parser.add_argument('-h', '--height', type=int, help='the height of the plot (default=10)', default=10)
+    parser.add_argument('-?', '--help', action='help', help='show this help and exit')
     return parser.parse_args(sys.argv[1:])
 
 def main():
